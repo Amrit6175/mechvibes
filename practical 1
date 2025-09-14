@@ -1,0 +1,66 @@
+-- =========================
+-- Setup: Create FeePayments Table
+-- =========================
+DROP TABLE IF EXISTS FeePayments;
+
+CREATE TABLE FeePayments (
+    payment_id INT PRIMARY KEY,
+    student_name VARCHAR(100) NOT NULL,
+    amount DECIMAL(10,2) CHECK (amount > 0),
+    payment_date DATE NOT NULL
+);
+
+-- =========================
+-- Part A: Successful Transaction (Commit)
+-- =========================
+START TRANSACTION;
+
+INSERT INTO FeePayments VALUES (1, 'Ashish', 5000.00, '2024-06-01');
+INSERT INTO FeePayments VALUES (2, 'Smaran', 4500.00, '2024-06-02');
+INSERT INTO FeePayments VALUES (3, 'Vaibhav', 5500.00, '2024-06-03');
+
+COMMIT;
+
+-- Verify
+SELECT * FROM FeePayments;
+
+-- =========================
+-- Part B: Failed Transaction (Rollback due to duplicate ID & negative amount)
+-- =========================
+START TRANSACTION;
+
+INSERT INTO FeePayments VALUES (4, 'Kiran', 6000.00, '2024-06-04');
+-- Invalid insert: duplicate payment_id=1 + negative amount
+INSERT INTO FeePayments VALUES (1, 'Ashish', -2000.00, '2024-06-05');
+
+ROLLBACK;
+
+-- Verify after rollback (should still only have 3 rows)
+SELECT * FROM FeePayments;
+
+-- =========================
+-- Part C: Partial Failure (Rollback due to NULL student_name)
+-- =========================
+START TRANSACTION;
+
+INSERT INTO FeePayments VALUES (5, 'Ravi', 4000.00, '2024-06-06');
+-- Invalid insert: NULL student_name violates NOT NULL
+INSERT INTO FeePayments VALUES (6, NULL, 3000.00, '2024-06-07');
+
+ROLLBACK;
+
+-- Verify after rollback (still 3 rows)
+SELECT * FROM FeePayments;
+
+-- =========================
+-- Part D: Final Transaction to show ACID Compliance
+-- =========================
+START TRANSACTION;
+
+INSERT INTO FeePayments VALUES (7, 'Arjun', 7000.00, '2024-06-08');
+INSERT INTO FeePayments VALUES (8, 'Meena', 6500.00, '2024-06-09');
+
+COMMIT;
+
+-- Final state of the table
+SELECT * FROM FeePayments;
